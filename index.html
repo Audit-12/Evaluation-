@@ -49,6 +49,7 @@
   }
   .datebar{
     display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
+    gap:8px;flex-wrap:wrap;
   }
   .datebar input{
     background:var(--card2);border:1px solid var(--line);color:var(--text);
@@ -80,6 +81,7 @@
   .rate-box .num{font-size:18px;font-weight:700;color:var(--accent2)}
   .rate-box .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
   .stat{background:var(--card2);border-radius:10px;padding:12px;text-align:center}
   .stat .num{font-size:20px;font-weight:700}
   .stat .lbl{font-size:11px;color:var(--muted);margin-top:3px}
@@ -110,10 +112,6 @@
   }
   .pipeline-item .row{display:flex;gap:8px}
   .pipeline-item .row > *{flex:1}
-  select{
-    background:var(--card2);border:1px solid var(--line);color:var(--text);
-    padding:9px 12px;border-radius:10px;font-size:14px;font-family:inherit;
-  }
   .funnel{
     display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;
     font-size:13px;color:var(--muted);padding:8px 0;
@@ -137,14 +135,6 @@
     padding:8px;opacity:0;transition:opacity .3s;
   }
   .saved.show{opacity:1}
-  .checkbox-row{display:flex;align-items:center;gap:10px;padding:8px 0}
-  .checkbox-row input{width:18px;height:18px;accent-color:var(--accent)}
-  .tabs-inner{display:flex;gap:6px;margin-bottom:14px}
-  .tabs-inner button{
-    flex:1;background:var(--card2);border:1px solid var(--line);color:var(--muted);
-    padding:9px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
-  }
-  .tabs-inner button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
   .empty{color:var(--muted);font-size:13.5px;text-align:center;padding:20px}
   .toast{
     position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
@@ -153,6 +143,18 @@
     pointer-events:none;
   }
   .toast.show{opacity:1}
+  .newday{
+    background:rgba(79,140,255,.12);border:1px solid rgba(79,140,255,.35);
+    padding:10px 14px;border-radius:12px;margin-bottom:14px;font-size:13.5px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+  }
+  .newday button{
+    background:var(--accent);color:#fff;border:none;padding:7px 14px;
+    border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  }
+  .stored-note{
+    font-size:12px;color:var(--muted);text-align:center;margin-top:10px;
+  }
 </style>
 </head>
 <body>
@@ -176,6 +178,11 @@
 
 <!-- ══════════ SCOUTING ══════════ -->
 <section class="page active" id="page-scouting">
+  <div class="newday" id="newday-banner" style="display:none">
+    <span>🌅 New day started. Fresh counters — yesterday is stored.</span>
+    <button onclick="dismissNewDay()">OK</button>
+  </div>
+
   <div class="card">
     <div class="datebar">
       <h3 style="margin:0">Daily Scouting</h3>
@@ -187,8 +194,7 @@
         <div class="progress-big" id="sc-big">0 <small>/ 3000</small></div>
         <div style="font-size:13px;color:var(--muted)" id="sc-remaining">3000 remaining</div>
       </div>
-      <div class="progress-bar"><div class="progress-fill" id="sc-fill" style="width:0%"></div>
-      </div>
+      <div class="progress-bar"><div class="progress-fill" id="sc-fill" style="width:0%"></div></div>
     </div>
 
     <div class="field">
@@ -220,6 +226,7 @@
     </div>
 
     <div class="saved" id="sc-saved">✓ Auto-saved</div>
+    <div class="stored-note" id="sc-stored"></div>
   </div>
 </section>
 
@@ -236,14 +243,16 @@
       <input type="date" id="pr-date" />
     </div>
 
-    <div class="field"><label>New contacts (gave me their number)</label><input type="number" id="pr-new" value="0" min="0"/></div>
-    <div class="field"><label>Follow-ups done</label><input type="number" id="pr-follow" value="0" min="0"/></div>
+    <div class="field"><label>People approached</label><input type="number" id="pr-approach" value="0" min="0"/></div>
+    <div class="field"><label>People who gave attention</label><input type="number" id="pr-attention" value="0" min="0"/></div>
+    <div class="field"><label>Contacts collected</label><input type="number" id="pr-contacts" value="0" min="0"/></div>
+    <div class="field"><label>People active with me</label><input type="number" id="pr-active" value="0" min="0"/></div>
     <div class="field"><label>Invitations sent</label><input type="number" id="pr-invites" value="0" min="0"/></div>
-    <div class="field"><label>Presentations / tools shared</label><input type="number" id="pr-present" value="0" min="0"/></div>
-    <div class="field"><label>Samples / products placed</label><input type="number" id="pr-samples" value="0" min="0"/></div>
-    <div class="field"><label>Team members connected with</label><input type="number" id="pr-team" value="0" min="0"/></div>
-    <div class="field"><label>Customers signed</label><input type="number" id="pr-cust" value="0" min="0"/></div>
-    <div class="field"><label>Partners signed</label><input type="number" id="pr-part" value="0" min="0"/></div>
+    <div class="field"><label>Came <span style="color:var(--muted);font-size:12px">(showed up from invite)</span></label><input type="number" id="pr-came" value="0" min="0"/></div>
+    <div class="field"><label>Stayed <span style="color:var(--muted);font-size:12px">(converted / remained)</span></label><input type="number" id="pr-stayed" value="0" min="0"/></div>
+
+    <div class="saved" id="pr-saved">✓ Auto-saved</div>
+    <div class="stored-note" id="pr-stored"></div>
   </div>
 
   <div class="card">
@@ -293,7 +302,7 @@
     <input type="text" id="pr-t1" placeholder="1." style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:10px;font-size:14px;margin-top:6px;font-family:inherit"/>
     <input type="text" id="pr-t2" placeholder="2." style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:10px;font-size:14px;margin-top:6px;font-family:inherit"/>
     <input type="text" id="pr-t3" placeholder="3." style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:10px;font-size:14px;margin-top:6px;font-family:inherit"/>
-    <div class="saved" id="pr-saved">✓ Auto-saved</div>
+    <div class="saved" id="pr-saved2">✓ Auto-saved</div>
   </div>
 </section>
 
@@ -393,7 +402,7 @@
 
 <script>
 /* ═══════════════ STORAGE ═══════════════ */
-const KEY = "evalToSuccess_v1";
+const KEY = "evalToSuccess_v2";
 let DB = load();
 
 function load(){
@@ -404,12 +413,11 @@ function load(){
   return {
     settings:{ scoutingLimit:3000 },
     scouting:{}, prospecting:{},
-    weeklyReflections:{}, monthlyReflections:{}, yearlyReflections:{}
+    weeklyReflections:{}, monthlyReflections:{}, yearlyReflections:{},
+    meta:{ lastSeenDate:null }
   };
 }
-function save(){
-  localStorage.setItem(KEY, JSON.stringify(DB));
-}
+function save(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
 function todayISO(){
   const d = new Date();
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -423,13 +431,13 @@ document.getElementById("nav").addEventListener("click", e=>{
   btn.classList.add("active");
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById("page-"+btn.dataset.tab).classList.add("active");
-  if(btn.dataset.tab==="weekly") renderWeekly();
-  if(btn.dataset.tab==="monthly") renderMonthly();
-  if(btn.dataset.tab==="yearly") renderYearly();
+  if(btn.dataset.tab==="weekly"){ renderWeekly(); loadWkReflect(); }
+  if(btn.dataset.tab==="monthly"){ renderMonthly(); loadMoReflect(); }
+  if(btn.dataset.tab==="yearly"){ renderYearly(); loadYrReflect(); }
   if(btn.dataset.tab==="prospecting") renderReminder();
 });
 
-/* ═══════════════ DATE INIT ═══════════════ */
+/* ═══════════════ DATE INIT + DAILY RESET ═══════════════ */
 const t = todayISO();
 document.getElementById("sc-date").value = t;
 document.getElementById("pr-date").value = t;
@@ -437,6 +445,22 @@ document.getElementById("wk-date").value = t;
 document.getElementById("mo-date").value = t.substring(0,7);
 document.getElementById("yr-date").value = new Date().getFullYear();
 document.getElementById("set-limit").value = DB.settings.scoutingLimit;
+
+/* Auto-reset: if today's record doesn't exist, it starts at 0 by default.
+   We also show the "new day" banner if last seen date was different. */
+function checkNewDay(){
+  const last = DB.meta.lastSeenDate;
+  const today = todayISO();
+  if(last && last !== today){
+    document.getElementById("newday-banner").style.display = "flex";
+  }
+  DB.meta.lastSeenDate = today;
+  save();
+}
+function dismissNewDay(){
+  document.getElementById("newday-banner").style.display = "none";
+}
+checkNewDay();
 
 /* ═══════════════ SCOUTING ═══════════════ */
 const scFields = ["sc-sent","sc-responses","sc-engagement","sc-access","sc-notes"];
@@ -449,6 +473,7 @@ function loadScouting(){
   document.getElementById("sc-access").value = rec.access ?? 0;
   document.getElementById("sc-notes").value = rec.notes ?? "";
   updateScoutingDisplay();
+  updateStoredNote("sc-stored", DB.scouting, d);
 }
 function saveScouting(){
   const d = document.getElementById("sc-date").value;
@@ -484,18 +509,20 @@ document.getElementById("sc-date").addEventListener("change", loadScouting);
 scFields.forEach(id=>document.getElementById(id).addEventListener("input", saveScouting));
 
 /* ═══════════════ PROSPECTING ═══════════════ */
-const prFields = ["pr-new","pr-follow","pr-invites","pr-present","pr-samples","pr-team","pr-cust","pr-part","pr-fear","pr-win","pr-lesson","pr-t1","pr-t2","pr-t3"];
+const prFields = [
+  "pr-approach","pr-attention","pr-contacts","pr-active","pr-invites","pr-came","pr-stayed",
+  "pr-fear","pr-win","pr-lesson","pr-t1","pr-t2","pr-t3"
+];
 function loadProspecting(){
   const d = document.getElementById("pr-date").value;
   const rec = DB.prospecting[d] || {};
-  document.getElementById("pr-new").value = rec.newContacts ?? 0;
-  document.getElementById("pr-follow").value = rec.followUps ?? 0;
-  document.getElementById("pr-invites").value = rec.invitations ?? 0;
-  document.getElementById("pr-present").value = rec.presentations ?? 0;
-  document.getElementById("pr-samples").value = rec.samples ?? 0;
-  document.getElementById("pr-team").value = rec.teamTouches ?? 0;
-  document.getElementById("pr-cust").value = rec.customers ?? 0;
-  document.getElementById("pr-part").value = rec.partners ?? 0;
+  document.getElementById("pr-approach").value = rec.approach ?? 0;
+  document.getElementById("pr-attention").value = rec.attention ?? 0;
+  document.getElementById("pr-contacts").value = rec.contacts ?? 0;
+  document.getElementById("pr-active").value = rec.active ?? 0;
+  document.getElementById("pr-invites").value = rec.invites ?? 0;
+  document.getElementById("pr-came").value = rec.came ?? 0;
+  document.getElementById("pr-stayed").value = rec.stayed ?? 0;
   document.getElementById("pr-energyin").value = rec.energyIn ?? 5;
   document.getElementById("pr-energyout").value = rec.energyOut ?? 5;
   document.getElementById("pr-energyin-val").textContent = rec.energyIn ?? 5;
@@ -509,6 +536,7 @@ function loadProspecting(){
   setYesNo("pr-avoided", rec.avoided ? "yes" : "no");
   document.getElementById("pr-fear-wrap").style.display = rec.avoided ? "block" : "none";
   renderPipeline(rec.pipeline || []);
+  updateStoredNote("pr-stored", DB.prospecting, d);
 }
 function saveProspecting(){
   const d = document.getElementById("pr-date").value;
@@ -516,14 +544,13 @@ function saveProspecting(){
   const avoided = document.querySelector("#pr-avoided button.on")?.dataset.v === "yes";
   const existing = DB.prospecting[d] || {};
   DB.prospecting[d] = {
-    newContacts: +document.getElementById("pr-new").value || 0,
-    followUps: +document.getElementById("pr-follow").value || 0,
-    invitations: +document.getElementById("pr-invites").value || 0,
-    presentations: +document.getElementById("pr-present").value || 0,
-    samples: +document.getElementById("pr-samples").value || 0,
-    teamTouches: +document.getElementById("pr-team").value || 0,
-    customers: +document.getElementById("pr-cust").value || 0,
-    partners: +document.getElementById("pr-part").value || 0,
+    approach: +document.getElementById("pr-approach").value || 0,
+    attention: +document.getElementById("pr-attention").value || 0,
+    contacts: +document.getElementById("pr-contacts").value || 0,
+    active: +document.getElementById("pr-active").value || 0,
+    invites: +document.getElementById("pr-invites").value || 0,
+    came: +document.getElementById("pr-came").value || 0,
+    stayed: +document.getElementById("pr-stayed").value || 0,
     energyIn: +document.getElementById("pr-energyin").value,
     energyOut: +document.getElementById("pr-energyout").value,
     avoided: avoided,
@@ -539,6 +566,7 @@ function saveProspecting(){
   };
   save();
   flash("pr-saved");
+  flash("pr-saved2");
   updateStreak();
 }
 document.getElementById("pr-date").addEventListener("change", loadProspecting);
@@ -594,7 +622,7 @@ function escapeAttr(s){ return String(s).replace(/"/g,"&quot;"); }
 function addPipeline(){
   const d = document.getElementById("pr-date").value;
   if(!DB.prospecting[d]) saveProspecting();
-  if(!DB.prospecting[d]) DB.prospecting[d] = {pipeline:[]};
+  if(!DB.prospecting[d]) DB.prospecting[d] = {};
   if(!DB.prospecting[d].pipeline) DB.prospecting[d].pipeline = [];
   DB.prospecting[d].pipeline.push({name:"",stage:"New",next:"",due:""});
   save();
@@ -634,7 +662,7 @@ function renderReminder(){
 /* ═══════════════ WEEKLY ═══════════════ */
 function getWeekDates(iso){
   const d = new Date(iso+"T00:00:00");
-  const day = d.getDay(); // 0 Sun
+  const day = d.getDay();
   const mon = new Date(d); mon.setDate(d.getDate() - ((day+6)%7));
   const out = [];
   for(let i=0;i<7;i++){
@@ -647,7 +675,7 @@ function renderWeekly(){
   const iso = document.getElementById("wk-date").value || todayISO();
   const days = getWeekDates(iso);
   let sSent=0,sResp=0,sEng=0,sAcc=0,sDays=0;
-  let pNew=0,pFollow=0,pInv=0,pPres=0,pSamp=0,pTeam=0,pCust=0,pPart=0;
+  let pApproach=0,pAttention=0,pContacts=0,pActive=0,pInv=0,pCame=0,pStayed=0;
   days.forEach(d=>{
     const s = DB.scouting[d];
     if(s){
@@ -656,24 +684,24 @@ function renderWeekly(){
     }
     const p = DB.prospecting[d];
     if(p){
-      pNew+=p.newContacts; pFollow+=p.followUps; pInv+=p.invitations;
-      pPres+=p.presentations; pSamp+=p.samples; pTeam+=p.teamTouches;
-      pCust+=p.customers; pPart+=p.partners;
+      pApproach+=p.approach||0; pAttention+=p.attention||0; pContacts+=p.contacts||0;
+      pActive+=p.active||0; pInv+=p.invites||0; pCame+=p.came||0; pStayed+=p.stayed||0;
     }
   });
   const respR = sSent ? ((sResp/sSent)*100).toFixed(1) : "0";
   const engR  = sResp ? ((sEng/sResp)*100).toFixed(1) : "0";
   const accR  = sEng  ? ((sAcc/sEng)*100).toFixed(1) : "0";
 
-  // bottleneck
   const stages = [
     ["Scouts sent", sSent],
     ["Responses", sResp],
     ["Engagement", sEng],
     ["Access", sAcc],
-    ["New contacts", pNew],
-    ["Presented", pPres],
-    ["Joined", pCust+pPart]
+    ["Approached", pApproach],
+    ["Attention", pAttention],
+    ["Invited", pInv],
+    ["Came", pCame],
+    ["Stayed", pStayed]
   ];
   let worst = null, worstDrop = 0;
   for(let i=0;i<stages.length-1;i++){
@@ -699,37 +727,44 @@ function renderWeekly(){
 
     <h3 style="margin-top:18px">Prospecting</h3>
     <div class="grid2">
-      <div class="stat"><div class="num">${pNew}</div><div class="lbl">New contacts</div></div>
-      <div class="stat"><div class="num">${pFollow}</div><div class="lbl">Follow-ups</div></div>
-      <div class="stat"><div class="num">${pInv}</div><div class="lbl">Invitations</div></div>
-      <div class="stat"><div class="num">${pPres}</div><div class="lbl">Presentations</div></div>
-      <div class="stat"><div class="num">${pSamp}</div><div class="lbl">Samples</div></div>
-      <div class="stat"><div class="num">${pTeam}</div><div class="lbl">Team touches</div></div>
-      <div class="stat"><div class="num">${pCust}</div><div class="lbl">Customers</div></div>
-      <div class="stat"><div class="num">${pPart}</div><div class="lbl">Partners</div></div>
+      <div class="stat"><div class="num">${pApproach}</div><div class="lbl">Approached</div></div>
+      <div class="stat"><div class="num">${pAttention}</div><div class="lbl">Gave attention</div></div>
+      <div class="stat"><div class="num">${pContacts}</div><div class="lbl">Contacts collected</div></div>
+      <div class="stat"><div class="num">${pActive}</div><div class="lbl">Active with me</div></div>
+      <div class="stat"><div class="num">${pInv}</div><div class="lbl">Invitations sent</div></div>
+    </div>
+
+    <h3 style="margin-top:18px">Invitation Outcome</h3>
+    <div class="grid3">
+      <div class="stat"><div class="num">${pInv}</div><div class="lbl">Invited</div></div>
+      <div class="stat"><div class="num">${pCame}</div><div class="lbl">Came</div></div>
+      <div class="stat"><div class="num">${pStayed}</div><div class="lbl">Stayed</div></div>
+    </div>
+    <div style="font-size:12.5px;color:var(--muted);text-align:center;margin-top:10px">
+      Came rate: ${pInv ? ((pCame/pInv)*100).toFixed(1) : 0}% •
+      Stayed rate: ${pCame ? ((pStayed/pCame)*100).toFixed(1) : 0}%
     </div>
 
     <h3 style="margin-top:18px">Funnel</h3>
     <div class="funnel">
       <b>${sSent.toLocaleString()}</b> <span class="arrow">→</span>
-      <b>${sResp.toLocaleString()}</b> <span class="arrow">→</span>
-      <b>${sEng.toLocaleString()}</b> <span class="arrow">→</span>
       <b>${sAcc.toLocaleString()}</b> <span class="arrow">→</span>
-      <b>${pNew}</b> <span class="arrow">→</span>
-      <b>${pPres}</b> <span class="arrow">→</span>
-      <b>${pCust+pPart}</b>
+      <b>${pApproach}</b> <span class="arrow">→</span>
+      <b>${pAttention}</b> <span class="arrow">→</span>
+      <b>${pContacts}</b> <span class="arrow">→</span>
+      <b>${pInv}</b> <span class="arrow">→</span>
+      <b>${pCame}</b> <span class="arrow">→</span>
+      <b>${pStayed}</b>
     </div>
     ${worst ? `<div class="bottleneck">⚠ Biggest bottleneck: ${worst} (${worstDrop.toFixed(0)}% drop)</div>` : ""}
   `;
 }
-document.getElementById("wk-date").addEventListener("change", renderWeekly);
+document.getElementById("wk-date").addEventListener("change", ()=>{ renderWeekly(); loadWkReflect(); });
 
-/* weekly reflections */
 const wkFields = ["wk-q1","wk-q2","wk-q3"];
 function wkKey(){
   const iso = document.getElementById("wk-date").value || todayISO();
-  const days = getWeekDates(iso);
-  return days[0];
+  return getWeekDates(iso)[0];
 }
 function loadWkReflect(){
   const k = wkKey();
@@ -748,7 +783,6 @@ function saveWkReflect(){
   save(); flash("wk-saved");
 }
 wkFields.forEach(id=>document.getElementById(id).addEventListener("input", saveWkReflect));
-document.getElementById("wk-date").addEventListener("change", ()=>{ loadWkReflect(); renderWeekly(); });
 
 /* ═══════════════ MONTHLY ═══════════════ */
 function renderMonthly(){
@@ -757,7 +791,7 @@ function renderMonthly(){
   const [y,mo] = m.split("-").map(Number);
   const daysInMonth = new Date(y, mo, 0).getDate();
   let sSent=0,sResp=0,sEng=0,sAcc=0,sDays=0;
-  let pNew=0,pFollow=0,pInv=0,pPres=0,pSamp=0,pTeam=0,pCust=0,pPart=0;
+  let pApproach=0,pAttention=0,pContacts=0,pActive=0,pInv=0,pCame=0,pStayed=0;
   for(let day=1; day<=daysInMonth; day++){
     const d = y+"-"+String(mo).padStart(2,"0")+"-"+String(day).padStart(2,"0");
     const s = DB.scouting[d];
@@ -767,13 +801,10 @@ function renderMonthly(){
     }
     const p = DB.prospecting[d];
     if(p){
-      pNew+=p.newContacts; pFollow+=p.followUps; pInv+=p.invitations;
-      pPres+=p.presentations; pSamp+=p.samples; pTeam+=p.teamTouches;
-      pCust+=p.customers; pPart+=p.partners;
+      pApproach+=p.approach||0; pAttention+=p.attention||0; pContacts+=p.contacts||0;
+      pActive+=p.active||0; pInv+=p.invites||0; pCame+=p.came||0; pStayed+=p.stayed||0;
     }
   }
-  const totalSigns = pCust+pPart;
-  const scoutsPerSign = totalSigns ? Math.round(sSent/totalSigns).toLocaleString() : "—";
 
   document.getElementById("mo-content").innerHTML = `
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">${m}</div>
@@ -790,18 +821,20 @@ function renderMonthly(){
 
     <h3 style="margin-top:18px">Prospecting</h3>
     <div class="grid2">
-      <div class="stat"><div class="num">${pNew}</div><div class="lbl">New contacts</div></div>
-      <div class="stat"><div class="num">${pFollow}</div><div class="lbl">Follow-ups</div></div>
-      <div class="stat"><div class="num">${pInv}</div><div class="lbl">Invitations</div></div>
-      <div class="stat"><div class="num">${pPres}</div><div class="lbl">Presentations</div></div>
-      <div class="stat"><div class="num">${pCust}</div><div class="lbl">Customers</div></div>
-      <div class="stat"><div class="num">${pPart}</div><div class="lbl">Partners</div></div>
+      <div class="stat"><div class="num">${pApproach}</div><div class="lbl">Approached</div></div>
+      <div class="stat"><div class="num">${pAttention}</div><div class="lbl">Gave attention</div></div>
+      <div class="stat"><div class="num">${pContacts}</div><div class="lbl">Contacts collected</div></div>
+      <div class="stat"><div class="num">${pActive}</div><div class="lbl">Active with me</div></div>
+      <div class="stat"><div class="num">${pInv}</div><div class="lbl">Invitations sent</div></div>
+      <div class="stat"><div class="num">${pCame}</div><div class="lbl">Came</div></div>
+      <div class="stat"><div class="num">${pStayed}</div><div class="lbl">Stayed</div></div>
     </div>
 
-    <h3 style="margin-top:18px">Efficiency</h3>
-    <div class="grid2">
-      <div class="stat"><div class="num">${totalSigns}</div><div class="lbl">Total sign-ups</div></div>
-      <div class="stat"><div class="num">${scoutsPerSign}</div><div class="lbl">Scouts per sign-up</div></div>
+    <h3 style="margin-top:18px">Invitation Outcome</h3>
+    <div class="grid3">
+      <div class="stat"><div class="num">${pInv}</div><div class="lbl">Invited</div></div>
+      <div class="stat"><div class="num">${pCame}</div><div class="lbl">Came</div></div>
+      <div class="stat"><div class="num">${pStayed}</div><div class="lbl">Stayed</div></div>
     </div>
   `;
 }
@@ -833,7 +866,7 @@ function renderYearly(){
   const y = +document.getElementById("yr-date").value;
   if(!y) return;
   let sSent=0,sResp=0,sEng=0,sAcc=0,sDays=0,sTotalDays=0;
-  let pNew=0,pFollow=0,pInv=0,pPres=0,pCust=0,pPart=0;
+  let pApproach=0,pAttention=0,pContacts=0,pActive=0,pInv=0,pCame=0,pStayed=0;
 
   Object.keys(DB.scouting).forEach(d=>{
     if(d.startsWith(y+"-")){
@@ -846,12 +879,10 @@ function renderYearly(){
   Object.keys(DB.prospecting).forEach(d=>{
     if(d.startsWith(y+"-")){
       const p = DB.prospecting[d];
-      pNew+=p.newContacts; pFollow+=p.followUps; pInv+=p.invitations;
-      pPres+=p.presentations; pCust+=p.customers; pPart+=p.partners;
+      pApproach+=p.approach||0; pAttention+=p.attention||0; pContacts+=p.contacts||0;
+      pActive+=p.active||0; pInv+=p.invites||0; pCame+=p.came||0; pStayed+=p.stayed||0;
     }
   });
-  const totalSigns = pCust+pPart;
-  const scoutsPerSign = totalSigns ? Math.round(sSent/totalSigns).toLocaleString() : "—";
 
   document.getElementById("yr-content").innerHTML = `
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">${y}</div>
@@ -868,18 +899,20 @@ function renderYearly(){
 
     <h3 style="margin-top:18px">Prospecting Year</h3>
     <div class="grid2">
-      <div class="stat"><div class="num">${pNew}</div><div class="lbl">New contacts</div></div>
-      <div class="stat"><div class="num">${pFollow}</div><div class="lbl">Follow-ups</div></div>
-      <div class="stat"><div class="num">${pInv}</div><div class="lbl">Invitations</div></div>
-      <div class="stat"><div class="num">${pPres}</div><div class="lbl">Presentations</div></div>
-      <div class="stat"><div class="num">${pCust}</div><div class="lbl">Customers</div></div>
-      <div class="stat"><div class="num">${pPart}</div><div class="lbl">Partners</div></div>
+      <div class="stat"><div class="num">${pApproach}</div><div class="lbl">Approached</div></div>
+      <div class="stat"><div class="num">${pAttention}</div><div class="lbl">Gave attention</div></div>
+      <div class="stat"><div class="num">${pContacts}</div><div class="lbl">Contacts collected</div></div>
+      <div class="stat"><div class="num">${pActive}</div><div class="lbl">Active with me</div></div>
+      <div class="stat"><div class="num">${pInv}</div><div class="lbl">Invitations sent</div></div>
+      <div class="stat"><div class="num">${pCame}</div><div class="lbl">Came</div></div>
+      <div class="stat"><div class="num">${pStayed}</div><div class="lbl">Stayed</div></div>
     </div>
 
-    <h3 style="margin-top:18px">Efficiency</h3>
-    <div class="grid2">
-      <div class="stat"><div class="num">${totalSigns}</div><div class="lbl">Total sign-ups</div></div>
-      <div class="stat"><div class="num">${scoutsPerSign}</div><div class="lbl">Scouts per sign-up</div></div>
+    <h3 style="margin-top:18px">Invitation Outcome</h3>
+    <div class="grid3">
+      <div class="stat"><div class="num">${pInv}</div><div class="lbl">Invited</div></div>
+      <div class="stat"><div class="num">${pCame}</div><div class="lbl">Came</div></div>
+      <div class="stat"><div class="num">${pStayed}</div><div class="lbl">Stayed</div></div>
     </div>
   `;
 }
@@ -930,17 +963,17 @@ function updateStreak(){
 
 /* ═══════════════ EXPORT / IMPORT ═══════════════ */
 function exportCSV(){
-  const scDates = Object.keys(DB.scouting).sort();
-  const prDates = Object.keys(DB.prospecting).sort();
+  const scDates = Object.keys(DB.scouting);
+  const prDates = Object.keys(DB.prospecting);
   const allDates = Array.from(new Set([...scDates, ...prDates])).sort();
-  let csv = "Date,Scouts Sent,Responses,Engagement,Access,New Contacts,Follow-ups,Invitations,Presentations,Samples,Team Touches,Customers,Partners\n";
+  let csv = "Date,Scouts Sent,Responses,Engagement,Access,Approached,Attention,Contacts,Active,Invites,Came,Stayed\n";
   allDates.forEach(d=>{
     const s = DB.scouting[d] || {};
     const p = DB.prospecting[d] || {};
     csv += [
       d, s.sent||0, s.responses||0, s.engagement||0, s.access||0,
-      p.newContacts||0, p.followUps||0, p.invitations||0, p.presentations||0,
-      p.samples||0, p.teamTouches||0, p.customers||0, p.partners||0
+      p.approach||0, p.attention||0, p.contacts||0, p.active||0,
+      p.invites||0, p.came||0, p.stayed||0
     ].join(",") + "\n";
   });
   download(csv, "evaluation-to-success-"+todayISO()+".csv", "text/csv");
@@ -979,6 +1012,7 @@ function wipeData(){
 /* ═══════════════ HELPERS ═══════════════ */
 function flash(id){
   const el = document.getElementById(id);
+  if(!el) return;
   el.classList.add("show");
   clearTimeout(el._t);
   el._t = setTimeout(()=>el.classList.remove("show"), 1200);
@@ -990,6 +1024,16 @@ function toast(msg){
   clearTimeout(el._t);
   el._t = setTimeout(()=>el.classList.remove("show"), 2200);
 }
+function updateStoredNote(elId, store, currentDate){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  const dates = Object.keys(store).sort();
+  if(!dates.length){ el.textContent = "No past days stored yet."; return; }
+  const isToday = currentDate === todayISO();
+  el.textContent = isToday
+    ? `📚 ${dates.length} day${dates.length===1?"":"s"} stored • View any past day with the date picker`
+    : `📅 Viewing a stored day • Total days stored: ${dates.length}`;
+}
 
 /* ═══════════════ INIT ═══════════════ */
 loadScouting();
@@ -998,6 +1042,7 @@ loadWkReflect();
 loadMoReflect();
 loadYrReflect();
 updateStreak();
+renderReminder();
 </script>
 
 </body>
